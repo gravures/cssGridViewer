@@ -11,7 +11,7 @@ The class is named `CssGridViewer` and its constructor takes an object ([*parame
 - `selector` (optional): A CSS selector string or an Array of selector string to find CSS grid elements in the document. If not provided all CSS grid elements in the document will be used.
 - `colors` (default: `a four colors array is provided`): An array of CSS colors strings to use for the overlays. Overlay's color will cycle on this array.
 - `opacity` (default: `1.0`): A number between 0 and 1 to set the opacity of the overlays.
-- `pattern` (default: `"lines"`): A string to set the pattern of the overlays. It can be either `"lines"` or `"board"`.
+- `pattern` (default: `"lines"`): A string to set the pattern of the gutters. It can be either `"lines"` or `"board"`.
 
 
 
@@ -37,11 +37,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
 The class handle some key events:
 
-- press <g> to switch on and off the overlay's visibility 
+- press [g] to switch on and off the overlay's visibility 
 
-- press <n> to select the next grid overlay, this will highlight it and mask other ones
+- press [n] to select the next grid overlay, this will highlight it and mask other ones
 
-- press <h> to switch visibility of a typographic grid on the selected grid 
+- press [h] to switch visibility of a typographic grid on the selected grid 
 
 Enjoy!
 
