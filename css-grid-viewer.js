@@ -199,8 +199,13 @@ class Overlay{
    drawTypeGrid(div){
       const h = div.getBoundingClientRect().height;
       const lh = parseInt(getComputedStyle(div).lineHeight);
+      
       this.typeGrid = document.createElement("div");
       this.typeGrid.setAttribute("name", "type-grid");
+      this.typeGrid.style.position = "absolute";
+      this.typeGrid.style.top = 0;
+      this.typeGrid.style.left = 0;
+      this.typeGrid.style.width = this.typeGrid.style.height = "100%";
 
       for(let y = 0; y < h; y += lh){
          let line = document.createElement("div");
@@ -323,9 +328,10 @@ class Overlay{
             this.makeRows(col, this.computeRowsInsets());
          }
       }
-      //this.drawTypeGrid(this.layer);
+      this.drawTypeGrid(this.layer);
    }
 }
+
 
 
 
