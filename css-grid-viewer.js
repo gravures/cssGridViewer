@@ -55,6 +55,7 @@ class CssGridViewer{
          window.addEventListener("resize", this);
          window.addEventListener("keydown", this);
       }
+      this.loadState();
    }
    
    queryGrids(){
@@ -73,12 +74,16 @@ class CssGridViewer{
       if (event.type === "keydown"){
          if (event.key ==="g"){
             this.switchVisibility();
+            this.saveState();
          } else if (event.key ==="n"){
             this.selectNextGrid();
+            this.saveState();
          } else if (event.key ==="h"){
             this.switchTypeGrid();
+            this.saveState();
          } else if (event.key ==="c"){
             this.cycleColor();
+            this.saveState();
          }
       } else if (event.type === "resize"){
          this.updateOverlays();
@@ -140,8 +145,66 @@ class CssGridViewer{
       );
       this.overlays.set(name, overlay);
       overlay.setupGrid();
+   } 
+     
+   loadState(){
+      let options = new Map();
+      const cookie = this.readCookie("cssGridViewer");
+      
+      for (let opt of cookie.split("|")){
+         const arr = opt.split(":");
+         options.set(arr[0], arr[1]);
+      }
+      
+      if (parseInt(options.get("selected")) < this.overlays.size){
+         this.selected = parseInt(options.get("selected"));
+         this.highlightGrid(this.selected);
+      }
+      if (options.get("visible") == "false"){
+         this.switchVisibility();
+      }
+      for (const [name, overlay] of this.overlays){
+         const bool = options.get(`${name}-TypeGrid`) == "true" ? true : false;
+         if (overlay.isTypeGridVisible() !== bool){
+            overlay.switchTypeGrid();
+         }
+      }
+      
+      // console.log(options);
    }  
+     
+   saveState(){
+      let values;
+      
+      values = `selected:${this.selected}`;
+      values += `|visible:${this.overlays.values().next().value.isVisible()}`;
+      for (const [name, overlay] of this.overlays){
+         values += `|${name}-TypeGrid:${overlay.isTypeGridVisible()}`;
+      }
+		this.writeCookie("cssGridViewer", values);
+	}
+   
+   writeCookie(name, value, days){
+		let expires = "";
+		if (days){
+			let date = new Date();
+			date.setTime(date.getTime() + (days * 24 *60 * 60 * 1000));
+			expires = date.toGMTString();
+		}
+		document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Strict;`;
+	}
+	
+	readCookie(name){
+		const cookies = document.cookie.split(';');
+		for (let cookie of cookies){
+		   if (cookie.trim().startsWith(name)){
+		      return cookie.substring(name.length + 2);
+		   }
+		}
+		return "";
+	}
 }
+
 
 class Overlay{
    constructor(name, css_grid, color, opacity, pattern){
@@ -177,6 +240,15 @@ class Overlay{
       this.layer.style.min_height = "20px";
       this.layer.style.opacity = opacity;
       this.layer.style.pointer_events = "none";
+      this.layer.style.visibility = "visible";
+   }
+   
+   isVisible(){
+      return this.layer.style.visibility == "visible";
+   }
+   
+   isTypeGridVisible(){
+      return this.typeGrid.style.opacity == 1.0;
    }
    
    setOpacity(value){
@@ -206,6 +278,7 @@ class Overlay{
       this.typeGrid.style.top = 0;
       this.typeGrid.style.left = 0;
       this.typeGrid.style.width = this.typeGrid.style.height = "100%";
+      this.typeGrid.style.opacity = 1.0;
 
       for(let y = 0; y < h; y += lh){
          let line = document.createElement("div");
