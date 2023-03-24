@@ -81,10 +81,7 @@ class CssGridViewer{
          } else if (event.key ==="h"){
             this.switchTypeGrid();
             this.saveState();
-         } else if (event.key ==="c"){
-            this.cycleColor();
-            this.saveState();
-         }
+         } 
       } else if (event.type === "resize"){
          this.updateOverlays();
       } 
@@ -123,11 +120,6 @@ class CssGridViewer{
       }
    }
    
-   cycleColor(){
-      
-   
-   }
-   
    updateOverlays(){
       for (let [name, overlay] of this.overlays){
          overlay.updateLayer();
@@ -144,7 +136,7 @@ class CssGridViewer{
          this.pattern,
       );
       this.overlays.set(name, overlay);
-      overlay.setupGrid();
+      overlay.updateLayer();
    } 
      
    loadState(){
@@ -207,6 +199,12 @@ class CssGridViewer{
 
 
 class Overlay{
+   static insider = {
+      element: undefined,
+      style: undefined,
+      layer: undefined,
+   }
+
    constructor(name, css_grid, color, opacity, pattern){
       this.grid = css_grid;
       this.color = color;
@@ -225,6 +223,10 @@ class Overlay{
                  '</svg>')]
       ]);
       this.pattern = pattern;
+      this.nCol = undefined;
+      this.nRow = undefined;
+      this.colGap = undefined;
+      this.rowGap = undefined;
       
       css_grid.style.position = 'relative';
       css_grid.style.overflow = 'visible';
@@ -241,6 +243,9 @@ class Overlay{
       this.layer.style.opacity = opacity;
       this.layer.style.pointer_events = "none";
       this.layer.style.visibility = "visible";
+      this.layer.style.zIndex = Overlay.under(css_grid);
+      
+      this.setSensitive("p");
    }
    
    isVisible(){
@@ -248,7 +253,7 @@ class Overlay{
    }
    
    isTypeGridVisible(){
-      return this.typeGrid.style.opacity == 1.0;
+      return this.layer.querySelector(`[name=${this.name}-type-grid]`).style.opacity == 1.0;
    }
    
    setOpacity(value){
@@ -260,40 +265,113 @@ class Overlay{
    }
    
    switchTypeGrid(){
-      this.typeGrid.style.opacity = this.typeGrid.style.opacity == 1.0 ? 0 : 1.0;
+      const typeGrid = this.layer.querySelector(`[name=${this.name}-type-grid]`);
+      typeGrid.style.opacity = typeGrid.style.opacity == 1.0 ? 0 : 1.0;
+   }
+   
+   setSensitive(selector){
+      const elmnts = this.grid.querySelectorAll(selector);
+      for (const e of elmnts){
+         e.addEventListener("mouseenter", Overlay.sensitiveHandler);
+         e.addEventListener("mouseleave", Overlay.sensitiveHandler);
+      }
+   }
+   
+   static sensitiveHandler(event){
+      //console.log("sensitiveHandler", event);
+      switch(event.type){
+         case 'mouseenter':
+            Overlay.cleanInsider();
+            Overlay.insider.element = event.target;
+            Overlay.insider.style = event.target.style;  // save 
+            Overlay.insider.element.style.position = "relative";
+            Overlay.insider.layer = Overlay.makeTypeGrid(event.target, "insider");
+            break;
+         case 'mouseleave':
+            Overlay.cleanInsider();
+            break;
+         default:
+            break;
+      }
+   }
+   
+   static cleanInsider(){
+      if (Overlay.insider.layer){
+         Overlay.insider.layer.remove();
+         Overlay.insider.layer = undefined;
+      }
+      if (Overlay.insider.element){
+         Overlay.insider.element.style = Overlay.insider.style;
+         Overlay.insider.style = undefined;
+         Overlay.insider.element = undefined;
+      }
    }
    
    updateLayer(){
       this.layer.replaceChildren();
-      this.setupGrid();
+ 
+      const style = getComputedStyle(this.grid);
+      this.nCol = parseInt(style.gridTemplateColumns.split(' ').length);
+      this.nRow = parseInt(style.gridTemplateRows.split(' ').length);
+      this.colGap = style.columnGap ? parseInt(style.columnGap) : 0;
+      this.rowGap = style.rowGap ? parseInt(style.rowGap) : 0;
+                  
+      // adding columns
+      let col = undefined;
+      for (let i = 0; i < this.nCol; i++) {
+         const col = document.createElement("div");
+         this.layer.appendChild(col);
+         if (col.offsetTop !== 0){  // safe guard
+            col.remove();
+            break;
+         }
+         this.makeColumn(col, i);
+         if (i === 0){
+            this.makeRows(col, this.computeRowsInsets());
+         }
+      }
+      Overlay.makeTypeGrid(this.layer, this.name, this.color);
    }
    
-   drawTypeGrid(div){
+   static under(element){
+      return Number.isInteger(parseInt(getComputedStyle(element).zIndex)) 
+             ? parseInt(getComputedStyle(element).zIndex) - 1 : -1;
+   }
+   
+   static over(element){
+      return Number.isInteger(parseInt(getComputedStyle(element).zIndex)) 
+             ? parseInt(getComputedStyle(element).zIndex) + 1 : 1;
+   }
+   
+   static makeTypeGrid(div, name, color="black"){
       const h = div.getBoundingClientRect().height;
       const lh = parseInt(getComputedStyle(div).lineHeight);
       
-      this.typeGrid = document.createElement("div");
-      this.typeGrid.setAttribute("name", "type-grid");
-      this.typeGrid.style.position = "absolute";
-      this.typeGrid.style.top = 0;
-      this.typeGrid.style.left = 0;
-      this.typeGrid.style.width = this.typeGrid.style.height = "100%";
-      this.typeGrid.style.opacity = 1.0;
+      const typeGrid = document.createElement("div");
+      typeGrid.setAttribute("name", `${name}-type-grid`);
+      typeGrid.style.position = "absolute";
+      typeGrid.style.top = 0;
+      typeGrid.style.left = 0;
+      typeGrid.style.width = typeGrid.style.height = "100%";
+      typeGrid.style.opacity = 1.0;
+      typeGrid.style.pointer_events = "none";
+      typeGrid.style.zIndex = Overlay.under(div);
 
-      for(let y = 0; y < h; y += lh){
+      for(let y = lh; y < h + lh; y += lh){
          let line = document.createElement("div");
          line.style.cssText = 
-            `position: absolute; border-bottom: 1px dashed ${this.color};` + 
+            `position: absolute; border-bottom: 1px dashed ${color};` + 
             `height: ${lh}; width: 100%; top: ${y}px; left: 0px;`;
-         this.typeGrid.appendChild(line);
+         typeGrid.appendChild(line);
       }
-      div.appendChild(this.typeGrid);
+      div.appendChild(typeGrid);
+      return typeGrid;
    }
    
    makeColumn(col, index){      
       col.setAttribute("name", `grid-column-${index}`);
-      col.style.cssText = 
-         `display: block; border: 1px solid ${this.color};`;
+      col.style.cssText = `display: block; border: 1px solid ${this.color};`;
+      col.stylepointer_events = "none";
          
       // gutter
       if (index < this.nCol - 1){
@@ -378,30 +456,6 @@ class Overlay{
       const svg = this.patterns.get(this.pattern);
       div.style.backgroundImage = 'url("data:image/svg+xml;base64,' + svg + '")';
       div.style.backgroundRepeat = 'repeat';
-   }
-
-   setupGrid(){       
-      const style = getComputedStyle(this.grid);
-      this.nCol = parseInt(style.gridTemplateColumns.split(' ').length);
-      this.nRow = parseInt(style.gridTemplateRows.split(' ').length);
-      this.colGap = style.columnGap ? parseInt(style.columnGap) : 0;
-      this.rowGap = style.rowGap ? parseInt(style.rowGap) : 0;
-                  
-      // adding columns
-      let col = undefined;
-      for (let i = 0; i < this.nCol; i++) {
-         const col = document.createElement("div");
-         this.layer.appendChild(col);
-         if (col.offsetTop !== 0){  // safe guard
-            col.remove();
-            break;
-         }
-         this.makeColumn(col, i);
-         if (i === 0){
-            this.makeRows(col, this.computeRowsInsets());
-         }
-      }
-      this.drawTypeGrid(this.layer);
    }
 }
 
