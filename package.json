@@ -1,0 +1,34 @@
+{
+  "name": "cssgridviewer",
+  "author": "gilles coissac",
+  "license": "GPL-3.0-or-later",
+  "version": "1.0.0",
+  "description": "A css grid viewer for web development",
+  "type": "module",
+  "main": "dist/css-grid-viewer.js",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "node --run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gravures/cssGridViewer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gravures/cssGridViewer/issues"
+  },
+  "homepage": "https://github.com/gravures/cssGridViewer#readme",
+  "keywords": [
+    "css",
+    "grid"
+  ],
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
