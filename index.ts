@@ -42,10 +42,12 @@ class CssGridViewer implements EventListenerObject {
    private pattern: string
 
    constructor(
-      selector?: string,
-      colors: string[] = defaultColors,
-      opacity: number = 1.0,
-      pattern: string = "lines"
+      { selector, colors = defaultColors, opacity = 1.0, pattern = "lines" }: {
+         selector?: string,
+         colors?: string[],
+         opacity?: number,
+         pattern?: string
+      }
    ) {
       this.colors = colors
       this.opacity = opacity
@@ -364,13 +366,15 @@ class Overlay {
 
 
 export default function (
-   selector?: string,
-   colors: string[] = defaultColors,
-   opacity: number = 1.0,
-   pattern: string = "lines"
+   { selector, colors = defaultColors, opacity = 1.0, pattern = "lines" }: {
+      selector?: string,
+      colors?: string[],
+      opacity?: number,
+      pattern?: string
+   }
 ): void {
    document.addEventListener("DOMContentLoaded", () => {
-      new CssGridViewer(selector, colors, opacity, pattern)
+      new CssGridViewer({ selector, colors, opacity, pattern })
    })
 }
 
