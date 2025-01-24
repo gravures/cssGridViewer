@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "description": "A css grid viewer for web development",
   "type": "module",
-  "main": "dist/css-grid-viewer.js",
+  "main": "dist/index.js",
   "files": [
     "dist"
   ],

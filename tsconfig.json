@@ -4,6 +4,7 @@
         "module": "ESNext",
         "target": "ES6",
         "outDir": "dist",
+        "declaration": true,
         "strict": true,
         "verbatimModuleSyntax": true,
         "isolatedModules": true,
@@ -13,8 +14,11 @@
         "allowJs": true,
         "jsx": "preserve",
         "removeComments": true,
-        "preserveConstEnums": true,
-        "sourceMap": true
+        "preserveConstEnums": true
     },
-    "files": [ "index.ts" ]
+    "files": [ "index.ts" ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }
