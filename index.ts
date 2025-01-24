@@ -24,10 +24,10 @@
  */
 
 const defaultColors = [
-   "hsl(0, 50%, 40%)",
+   "hsl(261, 52.00%, 40.00%)",
    "hsl(100, 50%, 40%)",
-   "hsl(200, 50%, 40%)",
-   "hsl(300, 50%, 40%)",
+   "hsl(221, 50.00%, 40.00%)",
+   "hsl(28, 50.00%, 40.00%)",
 ]
 
 
@@ -47,7 +47,7 @@ class CssGridViewer implements EventListenerObject {
          colors?: string[],
          opacity?: number,
          pattern?: string
-      }
+      } = {}
    ) {
       this.colors = colors
       this.opacity = opacity
@@ -371,7 +371,7 @@ export default function (
       colors?: string[],
       opacity?: number,
       pattern?: string
-   }
+   } = {}
 ): void {
    document.addEventListener("DOMContentLoaded", () => {
       new CssGridViewer({ selector, colors, opacity, pattern })
